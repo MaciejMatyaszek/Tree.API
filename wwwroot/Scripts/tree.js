@@ -1,315 +1,758 @@
-'use strict';
+﻿
+function usuwanie(obj) {
+    console.log("usuwanie 1");
+    console.log(obj);
+    for (var i = 0; i < obj.length; i++) {
+        if (obj[i].children) {
+            console.log("w if");
+            usuwanie(obj[i].children);
+        }
+        var Id = obj[i].id;
 
-{
-  const Emitter = typeof window.Emitter === 'undefined' ? class Emitter {
-    constructor() {
-      this.events = {};
-    }
-    on(name, callback) {
-      this.events[name] = this.events[name] || [];
-      this.events[name].push(callback);
-    }
-    once(name, callback) {
-      callback.once = true;
-      this.on(name, callback);
-    }
-    emit(name, ...data) {
-      if (this.events[name] === undefined ) {
-        return;
-      }
-      for (const c of [...this.events[name]]) {
-        c(...data);
-        if (c.once) {
-          const index = this.events[name].indexOf(c);
-          this.events[name].splice(index, 1);
-        }
-      }
-    }
-  } : window.Emitter;
+        $.ajax({
+            type: 'DELETE',
+            url: 'https://localhost:44366/value/' + Id,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
 
-  class SimpleTree extends Emitter {
-    constructor(parent, properties = {}) {
-      super();
-      // do not toggle with click
-      parent.addEventListener('click', e => {
-        // e.clientX to prevent stopping Enter key
-        // e.detail to prevent dbl-click
-        // e.offsetX to allow plus and minus clicking
-        if (e && e.clientX && e.detail === 1 && e.offsetX >= 0) {
-          return e.preventDefault();
-        }
-        const active = this.active();
-        if (active && active.dataset.type === SimpleTree.FILE) {
-          e.preventDefault();
-          this.emit('action', active);
-          if (properties['no-focus-on-action'] === true) {
-            window.clearTimeout(this.id);
-          }
-        }
-      });
-      parent.classList.add('simple-tree');
-      if (properties.dark) {
-        parent.classList.add('dark');
-      }
-      this.parent = parent.appendChild(document.createElement('details'));
-      this.parent.appendChild(document.createElement('summary'));
-      this.parent.open = true;
-      // use this function to alter a node before being passed to this.file or this.folder
-      this.interrupt = node => node;
-    }
-    append(element, parent, before, callback = () => {}) {
-      if (before) {
-        parent.insertBefore(element, before);
-      }
-      else {
-        parent.appendChild(element);
-      }
-      callback();
-      return element;
-    }
-    file(node, parent = this.parent, before) {
-      parent = parent.closest('details');
-      node = this.interrupt(node);
-      const a = this.append(Object.assign(document.createElement('a'), {
-        textContent: node.name,
-        href: '#'
-      }), parent, before);
-      a.dataset.type = SimpleTree.FILE;
-      this.emit('created', a, node);
-      return a;
-    }
-    folder(node, parent = this.parent, before) {
-      parent = parent.closest('details');
-      node = this.interrupt(node);
-      const details = document.createElement('details');
-      const summary = Object.assign(document.createElement('summary'), {
-        textContent: node.name
-      });
-      details.appendChild(summary);
-      this.append(details, parent, before, () => {
-        details.open = node.open;
-        details.dataset.type = SimpleTree.FOLDER;
-      });
-      this.emit('created', summary, node);
-      return summary;
-    }
-    open(details) {
-      details.open = true;
-    }
-    hierarchy(element = this.active()) {
-      if (this.parent.contains(element)) {
-        const list = [];
-        while (element !== this.parent) {
-          if (element.dataset.type === SimpleTree.FILE) {
-            list.push(element);
-          }
-          else if (element.dataset.type === SimpleTree.FOLDER) {
-            list.push(element.querySelector('summary'));
-          }
-          element = element.parentElement;
-        }
-        return list;
-      }
-      else {
-        return [];
-      }
-    }
-    siblings(element = this.parent.querySelector('a, details')) {
-      if (this.parent.contains(element)) {
-        if (element.dataset.type === undefined) {
-          element = element.parentElement;
-        }
-        return [...element.parentElement.children].filter(e => {
-          return e.dataset.type === SimpleTree.FILE || e.dataset.type === SimpleTree.FOLDER;
-        }).map(e => {
-          if (e.dataset.type === SimpleTree.FILE) {
-            return e;
-          }
-          else {
-            return e.querySelector('summary');
-          }
         });
-      }
-      else {
-        return [];
-      }
     }
-    children(details) {
-      const e = details.querySelector('a, details');
-      if (e) {
-        return this.siblings(e);
-      }
-      else {
-        return [];
-      }
-    }
-  }
-  SimpleTree.FILE = 'file';
-  SimpleTree.FOLDER = 'folder';
+}
 
-  class AsyncTree extends SimpleTree {
-    constructor(parent, options) {
-      super(parent, options);
-      // do not allow toggling when folder is loading
-      parent.addEventListener('click', e => {
-        const details = e.target.parentElement;
-        if (details.open && details.dataset.loaded === 'false') {
-          e.preventDefault();
-        }
-      });
-      parent.classList.add('async-tree');
-    }
-    // add open event for folder creation
-    folder(...args) {
-      const summary = super.folder(...args);
-      const details = summary.closest('details');
-      details.addEventListener('toggle', e => {
-        this.emit(details.dataset.loaded === 'false' && details.open ? 'fetch' : 'open', summary);
-      });
-      summary.resolve = () => {
-        details.dataset.loaded = true;
-        this.emit('open', summary);
-      };
-      return summary;
-    }
-    asyncFolder(node, parent, before) {
-      const summary = this.folder(node, parent, before);
-      const details = summary.closest('details');
-      details.dataset.loaded = false;
 
-      if (node.open) {
-        this.open(details);
-      }
 
-      return summary;
-    }
-    unloadFolder(summary) {
-      const details = summary.closest('details');
-      details.open = false;
-      const focused = this.active();
-      if (focused && this.parent.contains(focused)) {
-        this.select(details);
-      }
-      [...details.children].slice(1).forEach(e => e.remove());
-      details.dataset.loaded = false;
-    }
-    browse(validate, es = this.siblings()) {
-      for (const e of es) {
-        if (validate(e)) {
-          this.select(e);
-          if (e.dataset.type === SimpleTree.FILE) {
-            return this.emit('browse', e);
-          }
-          const parent = e.closest('details');
-          if (parent.open) {
-            return this.browse(validate, this.children(parent));
-          }
-          else {
-            window.setTimeout(() => {
-              this.once('open', () => this.browse(validate, this.children(parent)));
-              this.open(parent);
-            }, 0);
-            return;
-          }
-        }
-      }
-      this.emit('browse', false);
-    }
-  }
 
-  class SelectTree extends AsyncTree {
-    constructor(parent, options = {}) {
-      super(parent, options);
-      /* multiple clicks outside of elements */
-      parent.addEventListener('click', e => {
-        if (e.detail > 1) {
-          const active = this.active();
-          if (active && active !== e.target) {
-            if (e.target.tagName === 'A' || e.target.tagName === 'SUMMARY') {
-              return this.select(e.target, 'click');
+
+
+
+
+function usuwanieFirst(table, id) {
+    console.log("usuwaniefirst");
+    console.log(table);
+    console.log(id);
+    console.log(table.length);
+
+    for (var i = 0; i < table.length; i++) {
+        console.log(table[i].children);
+        if (table[i].id == id) {
+            console.log(table[i].Id);
+            if (table[i].children != null) {
+                usuwanie(table[i].children);
             }
-          }
-          if (active) {
-            this.focus(active);
-          }
-        }
-      });
-      window.addEventListener('focus', () => {
-        const active = this.active();
-        if (active) {
-          this.focus(active);
-        }
-      });
-      parent.addEventListener('focusin', e => {
-        const active = this.active();
-        if (active !== e.target) {
-          this.select(e.target, 'focus');
-        }
-      });
-      this.on('created', (element, node) => {
-        if (node.selected) {
-          this.select(element);
-        }
-      });
-      parent.classList.add('select-tree');
-      // navigate
-      if (options.navigate) {
-        this.parent.addEventListener('keydown', e => {
-          const {code} = e;
-          if (code === 'ArrowUp' || code === 'ArrowDown') {
-            this.navigate(code === 'ArrowUp' ? 'backward' : 'forward');
-            e.preventDefault();
-          }
-        });
-      }
-    }
-    focus(target) {
-      window.clearTimeout(this.id);
-      this.id = window.setTimeout(() => document.hasFocus() && target.focus(), 100);
-    }
-    select(target) {
-      const summary = target.querySelector('summary');
-      if (summary) {
-        target = summary;
-      }
-      [...this.parent.querySelectorAll('.selected')].forEach(e => e.classList.remove('selected'));
-      target.classList.add('selected');
-      this.focus(target);
-      this.emit('select', target);
-    }
-    active() {
-      return this.parent.querySelector('.selected');
-    }
-    navigate(direction = 'forward') {
-      const e = this.active();
-      if (e) {
-        const list = [...this.parent.querySelectorAll('a, summary')];
-        const index = list.indexOf(e);
-        const candidates = direction === 'forward' ? list.slice(index + 1) : list.slice(0, index).reverse();
-        for (const m of candidates) {
-          if (m.getBoundingClientRect().height) {
-            return this.select(m);
-          }
-        }
-      }
-    }
-  }
 
-  class JSONTree extends SelectTree {
-    json(array, parent) {
-      array.forEach(item => {
-        if (item.type === SimpleTree.FOLDER) {
-          const folder = this[item.asynced ? 'asyncFolder' : 'folder'](item, parent);
-          if (item.children) {
-            this.json(item.children, folder);
-          }
+
+        }
+    }
+    console.log("Koniec");
+}
+
+
+
+function usuwanieLast(id) {
+
+    $.ajax({
+        type: 'DELETE',
+        url: 'https://localhost:44366/value/' + id,
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function (result) {
+
+
+        },
+
+
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+function combobox() {
+
+    $.ajax({
+        type: 'GET',
+        url: 'https://localhost:44366/value/allElemennts',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function (data) {
+
+            $('#ParentId').empty();
+            var s = $('#ParentId');
+
+            for (var val in data) {
+                $('<option />', { value: val.id, text: data[val].id }).appendTo(s);
+            }
+
+        }
+    });
+}
+
+
+
+combobox();
+
+
+function rozwin() {
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+
+        toggler[i].parentElement.querySelector(".nested").classList.toggle("active");
+        toggler[i].classList.toggle("caret-down");
+
+    }
+
+    var s = $("#rozwiń").text();
+    if (s == 'Rozwin') {
+        $("#rozwin").text("Zwin");
+    }
+    else {
+        $("#rozwin").text("Rozwin");
+    }
+
+}
+
+function sortBranch() {
+    $(document).ready(function () {
+        $("#")
+    })
+}
+
+function time() {
+    $(document).ready(function () {
+        $("i").click(function (e) {
+
+            var check = event.target.id + "a";
+            var setid = $("#" + check).val();
+            console.log("setid");
+            console.log(setid);
+            var temp = setid + "da";
+            var temp2 = setid + "sa";
+            var temp3 = setid + "ha";
+            console.log(check);
+            console.log(temp3);
+
+            var Id = setid;
+            if (temp == check) {
+
+
+                if (confirm("Are you sure?")) {
+
+
+                    $.ajax({
+                        type: 'GET',
+                        url: 'https://localhost:44366/value/full',
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            alert("tujaj bylem");
+
+                            usuwanieFirst(data, Id);
+
+                            console.log("Wrocilem tu");
+                            usuwanieLast(Id);
+
+
+                            $("#tree").empty();
+
+
+                            setTimeout(() => renderTree(), 400);
+                            generate();
+
+                        }
+                    });
+
+
+                    //        $.ajax({
+                    //            type: 'DELETE',
+                    //            url: 'https://localhost:44366/value/' + Id,
+
+                    //            success: function (result) {
+                    //                $("#tree").empty();
+                    //                 alert("Sukces");
+                    //renderTree();
+                    //setTimeout(() => testowa(), 500);
+                    //setTimeout(() => time(), 800);
+                    //setTimeout(() => combobox(), 1000);
+                    //setTimeout(() => rozwin(), 1001);
+
+                    //            },
+                    //             error: function(result) {
+                    //               alert('error');
+                    //               }
+                    //        });
+
+
+                }
+            }
+            else if (temp2 == check) {
+                $.ajax({
+                    type: 'GET',
+                    url: 'https://localhost:44366/value/' + Id,
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        alert("Get metoda");
+
+                        $("#Name").val(data.name);
+                        $("#ParentId").val(data.parentId);
+                        $("#Id").val(data.id);
+
+                    }
+                });
+
+
+
+            }
+            else if(temp3 == check) {
+                var idsort = event.target.id + "a";
+                var valsortid = $("#" + idsort).val();
+                alert("jestem temp3");
+                 $("#tree").empty();
+
+                setTimeout(() => renderTreeSortBranch(valsortid), 400);
+                generate();
+                    
+            }
+
+        });
+    });
+}
+
+
+
+
+
+
+
+
+
+
+setTimeout(() => time(), 1000);
+
+function getElemById(i) {
+
+    $.ajax({
+        type: 'GET',
+        url: 'https://localhost:44366/value/full',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function (data) {
+            $("#Name").val(data.name);
+
+            $("#ParentId").val(data.parentId);
+            $("#Id").val(data.id);
+            alert(data[i].children);
+
+        }
+    });
+}
+
+
+
+
+function add() {
+    id = $("#id").val();
+    name = $("#Name").val();
+    parentId = $("#ParentId").val();
+
+    if (name != "") {
+
+
+
+        var data = {
+            "Id": id,
+            "Name": name,
+            "ParentId": parentId
+        };
+
+
+
+        $.ajax({
+            type: 'POST',
+            url: 'https://localhost:44366/value/',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                $("#tree").empty();
+                renderTree();
+                generate();
+
+            }
+        });
+        $("#error").empty();
+
+    }
+    else {
+        $("#error").append("Wpisz nazwe ");
+    }
+}
+
+
+
+function getElemById(Id) {
+
+
+
+    $.ajax({
+        type: 'GET',
+        url: 'https://localhost:44366/value/' + Id,
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function (data) {
+            $("#Name").val(data.name);
+
+            $("#ParentId").val(data.parentId);
+            $("#Id").val(data.id);
+        }
+    });
+}
+
+
+function change() {
+    id = $("#Id").val();
+    name = $("#Name").val();
+    parentId = $("#ParentId").val();
+    if (name != "") {
+
+
+
+        var data = {
+            "Id": id,
+            "Name": name,
+            "ParentId": parentId
+        };
+
+
+
+        $.ajax({
+            type: 'PUT',
+            url: 'https://localhost:44366/value/',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                $("#tree").empty();
+                alert("Sukces");
+                renderTree();
+                generate();
+
+
+                $("#Id").val(0);
+                $("#Name").val("");
+                $("#ParentId").val(1);
+            }
+        });
+        $("#error").empty();
+    }
+    else {
+        $("#error").append("Wpisz nazwe");
+    }
+
+
+}
+
+
+
+function to_uld(temp) {
+
+
+    
+    for (var i = 0, n = temp.length; i < n; i++) {
+        var child = temp[i];
+        var test = document.getElementById(child.id + "s");
+
+        if (test == null) {
+
+
+            document.getElementById(child.id).innerHTML += "   <i id=" + child.id + "s class=\"fas fa-tools\"><input id=" + child.id + "sa type=\"hidden\" value=" + child.id + "></i>";
+            document.getElementById(child.id).innerHTML += "   <i  id=" + child.id + "d class=\"fa fa-trash\" aria-hidden=\"true\"><input id=" + child.id + "da type=\"hidden\" value=" + child.id + "></i></i>";
+
         }
         else {
-          this.file(item, parent);
+            document.getElementById(child.id + "s").innerHTML += "  <i id=" + child.id + "s  class=\"fas fa-tools\"><input id=" + child.id + "sa type=\"hidden\" value=" + child.id + "></i>";
+            document.getElementById(child.id + "s").innerHTML += "  <i  id=" + child.id + "d class=\"fa fa-trash\" aria-hidden=\"true\"><input id=" + child.id + "da type=\"hidden\" value=" + child.id + "></i></i>";
+            document.getElementById(child.id + "s").innerHTML += "  <i  id=" + child.id + "h class=\"fa fa-filter\" aria-hidden=\"true\"><input id=" + child.id + "ha type=\"hidden\" value=" + child.id + "></i></i>";
         }
-      });
-    }
-  }
 
-  window.Tree = JSONTree;
+        if (child.children) {
+            to_uld(child.children);
+        }
+
+
+    }
+
+
+}
+
+
+function dynamicSort(property) {
+    var sortOrder = 1;
+    if (property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a, b) {
+        /* next line works with strings and numbers, 
+         * and you may want to customize it to your needs
+         */
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
+
+
+
+function to_ul(temp, obj) {
+
+    var ul = document.createElement("ul");
+    if (obj.name != "root") {
+        ul.className = "nested";
+    }
+    if (obj.name == 'root') {
+        ul.id = "myUL";
+        var liroot = document.createElement("li");
+        var uln = document.createElement("ul");
+        var spanroot = document.createElement("span")
+        spanroot.id="root";
+        var sg = document.createTextNode("Tree");
+        spanroot.className = "caret";
+
+        spanroot.appendChild(sg);
+        uln.className = "nested";
+        ul.appendChild(liroot);
+        liroot.appendChild(spanroot);
+        liroot.appendChild(uln);
+
+
+        
+
+    }
+
+    for (var i = 0, n = temp.length; i < n; i++) {
+        var child = temp[i];
+        var li = document.createElement("li");
+        var button = document.createElement("a");
+        var button2 = document.createElement("a");
+        var spanek = document.createElement("span");
+        spanek.className = "caret";
+
+        li.id = child.id;
+        spanek.id = child.id + "s";
+        button.id = child.id + "a";
+        button2.id = child.id + "t";
+
+        var y = document.createTextNode("<i class=\"fas fa-plus-circle\"></i>");
+        button2.href = "www.google.pl"
+        button.href = "https://localhost:44366/value/test";
+        button.appendChild(y);
+        var text = document.createTextNode(child.name);
+
+
+        if (child.children) {
+            spanek.appendChild(text);
+            li.appendChild(spanek);
+            li.appendChild(to_ul(child.children, child.name));
+        }
+        else {
+            li.appendChild(text);
+
+        }
+        if (obj.name == 'root') {
+
+            uln.appendChild(li);
+        }
+        else {
+            ul.appendChild(li);
+            var at = child.id + "a";
+        }
+    }
+
+    return ul;
+}
+function to_ulSort(temp, obj) {
+
+    var ul = document.createElement("ul");
+    if (obj.name != "root") {
+        ul.className = "nested";
+    }
+    if (obj.name == 'root') {
+        ul.id = "myUL";
+        var liroot = document.createElement("li");
+        var uln = document.createElement("ul");
+        var spanroot = document.createElement("span")
+        spanroot.id = "root";
+        var sg = document.createTextNode("Tree");
+        spanroot.className = "caret";
+
+        spanroot.appendChild(sg);
+        uln.className = "nested";
+        ul.appendChild(liroot);
+        liroot.appendChild(spanroot);
+        liroot.appendChild(uln);
+
+
+
+
+    }
+    if (temp != null) {
+        temp.sort(dynamicSort("name"));
+    }
+
+    for (var i = 0, n = temp.length; i < n; i++) {
+        var child = temp[i];
+        var li = document.createElement("li");
+        var button = document.createElement("a");
+        var button2 = document.createElement("a");
+        var spanek = document.createElement("span");
+        spanek.className = "caret";
+
+        li.id = child.id;
+        spanek.id = child.id + "s";
+        button.id = child.id + "a";
+        button2.id = child.id + "t";
+
+        var y = document.createTextNode("<i class=\"fas fa-plus-circle\"></i>");
+        button2.href = "www.google.pl"
+        button.href = "https://localhost:44366/value/test";
+        button.appendChild(y);
+        var text = document.createTextNode(child.name);
+
+
+        if (child.children) {
+            spanek.appendChild(text);
+            li.appendChild(spanek);
+            li.appendChild(to_ul(child.children, child.name));
+        }
+        else {
+            li.appendChild(text);
+
+        }
+        if (obj.name == 'root') {
+
+            uln.appendChild(li);
+        }
+        else {
+            ul.appendChild(li);
+            var at = child.id + "a";
+        }
+    }
+
+    return ul;
+}
+
+async function renderTree() {
+    var treeEl = document.getElementById("tree");
+    const api_url = 'https://localhost:44366/value/all';
+
+    const response = await fetch(api_url);
+    const data = await response.json();
+
+
+
+    var treeObj = data;
+
+
+    treeEl.appendChild(to_ul(treeObj.children, treeObj));
+    to_uld(treeObj.children);
+}
+
+async function renderTreeSort() {
+    var treeEl = document.getElementById("tree");
+    const api_url = 'https://localhost:44366/value/all';
+
+    const response = await fetch(api_url);
+    const data = await response.json();
+
+
+
+    var treeObj = data;
+
+
+    treeEl.appendChild(to_ulSort(treeObj.children, treeObj));
+    to_uld(treeObj.children);
+}
+
+async function renderTreeSortBranch(id) {
+    var treeEl = document.getElementById("tree");
+    const api_url = 'https://localhost:44366/value/all';
+
+    const response = await fetch(api_url);
+    const data = await response.json();
+
+
+
+    var treeObj = data;
+
+
+    treeEl.appendChild(to_ulSortBranch(treeObj.children, treeObj, id));
+    to_uld(treeObj.children);
+}
+
+function to_ulSortBranch(temp, obj, id) {
+
+    var ul = document.createElement("ul");
+    if (obj.name != "root") {
+        ul.className = "nested";
+    }
+    if (obj.name == 'root') {
+        ul.id = "myUL";
+        var liroot = document.createElement("li");
+        var uln = document.createElement("ul");
+        var spanroot = document.createElement("span")
+        
+        spanroot.id = "root";
+        var sg = document.createTextNode("Tree");
+        spanroot.className = "caret";
+
+        spanroot.appendChild(sg);
+        uln.className = "nested";
+        ul.appendChild(liroot);
+        liroot.appendChild(spanroot);
+        liroot.appendChild(uln);
+
+    }
+
+
+
+    console.log(temp);
+
+    for (var i = 0, n = temp.length; i < n; i++) {
+        var child = temp[i];
+        var li = document.createElement("li");
+        var button = document.createElement("a");
+        var button2 = document.createElement("a");
+        var spanek = document.createElement("span");
+        spanek.className = "caret";
+
+        li.id = child.id;
+        spanek.id = child.id + "s";
+        button.id = child.id + "a";
+        button2.id = child.id + "t";
+
+        var y = document.createTextNode("<i class=\"fas fa-plus-circle\"></i>");
+        button2.href = "www.google.pl"
+        button.href = "https://localhost:44366/value/test";
+        button.appendChild(y);
+        var text = document.createTextNode(child.name);
+
+
+        if (child.children) {
+            console.log("Dzieci");
+            console.log(child.id);
+            console.log("id");
+            console.log(id);
+            spanek.appendChild(text);
+            li.appendChild(spanek);
+            if (child.id == id) {
+
+                console.log(child.cs);
+                console.log(child.children.sort(dynamicSort("name")));
+
+                li.appendChild(to_ulSortBranch(child.children.sort(dynamicSort("name")), child.name, id));
+            }
+            else {
+                li.appendChild(to_ulSortBranch(child.children, child.name, id));
+            }
+        }
+        else {
+            li.appendChild(text);
+
+        }
+        if (obj.name == 'root') {
+
+            uln.appendChild(li);
+        }
+        else {
+            ul.appendChild(li);
+            var at = child.id + "a";
+        }
+    }
+
+    return ul;
+}
+
+
+async function testowa() {
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+
+    for (i = 0; i < toggler.length; i++) {
+        toggler[i].addEventListener("click", function () {
+            this.parentElement.querySelector(".nested").classList.toggle("active");
+            this.classList.toggle("caret-down");
+        });
+    }
+
+
+
+
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", function (event) {
+
+    var toggler = document.getElementsByClassName("caret");
+
+    
+
+});
+
+
+
+
+
+
+renderTree();
+setTimeout(() => AddIconToRoot(), 1002);
+setTimeout(() => testowa(), 1002);
+setTimeout(() => time(), 800);
+setTimeout(() => combobox(), 1000);
+setTimeout(() => rozwin(), 1001);
+
+
+function generate(){
+    setTimeout(() => AddIconToRoot(), 1002);
+    setTimeout(() => testowa(), 1002);
+    setTimeout(() => time(), 800);
+    setTimeout(() => combobox(), 1000);
+    setTimeout(() => rozwin(), 1001);
+}
+
+function AddIconToRoot() {
+
+    $("#root").append('<i id=\"1r\" class=\"fa fa-filter\" aria-hidden=\"true\"><input id=\"1ra\" type=\"hidden\" value=\"1\"></i></i>');
+
+    $(document).ready(function () {
+        $("#1r").click(function (e) {
+
+            $("#tree").empty();
+            renderTreeSort();
+            setTimeout(() => AddIconToRoot(), 1002);
+            setTimeout(() => testowa(), 1002);
+            setTimeout(() => time(), 800);
+            setTimeout(() => combobox(), 1000);
+            setTimeout(() => rozwin(), 1001);
+
+
+        });
+
+    });
+
+
+
+
 }

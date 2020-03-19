@@ -52,3 +52,53 @@ ul, #myUL {
 .active {
     display: block;
 }
+
+#error{
+    font-weight:bold;
+    color:red;
+}
+
+
+}
+
+#tree{
+ min-height:50vh;
+  background-color: red;
+  min-height:80vh;
+}
+
+.test{
+    height: 100vh;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.app {
+    background-color: #eee;
+    text-align: center;
+    display: grid;
+    grid-template-areas: "c c c c c c c c c c c c" "f f f f f f f f f f f f";
+}
+
+
+.content {
+    grid-area: c;
+    min-height: 80vh;
+}
+
+.footer {
+    grid-area: f;
+    background-color: black;
+    min-height: 15vh;
+}
+
+.header{
+    background-color:balck;
+}
+.form {
+    background-color: grey;
+    min-height: 85vh;
+}

@@ -29,6 +29,9 @@ namespace Tree.Migrations
                 name: "IX_Node_ParentId",
                 table: "Node",
                 column: "ParentId");
+
+
+            migrationBuilder.Sql(" INSERT INTO[dbo].[Node] ([Name],[ParentId]) VALUES  ('root', null) ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

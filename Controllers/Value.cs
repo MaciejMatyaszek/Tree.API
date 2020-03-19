@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Tree.API.Data;
 using Tree.API.Dto;
 using Tree.API.Models;
-
+using Tree.Dto;
 
 namespace Tree.API.Controllers
 {
@@ -19,7 +19,7 @@ namespace Tree.API.Controllers
 
         private readonly DataContext _context;
 
-       public ValueController (DataContext context)
+        public ValueController(DataContext context)
         {
             _context = context;
         }
@@ -33,15 +33,18 @@ namespace Tree.API.Controllers
 
 
         [HttpPut]
-        public async Task<IActionResult> Edit([FromBody] Node node)
+        public async Task<IActionResult> Edit([FromBody] UpdateNodeCommand node)
         {
             if (ModelState.IsValid)
             {
                 var nodeToUpdate = await _context.Node.FindAsync(node.Id);
-                nodeToUpdate.Name = node.Name;
-                nodeToUpdate.ParentId = node.ParentId;
-                await _context.SaveChangesAsync();
-                return NoContent();
+                if (nodeToUpdate != null)
+                {
+                    nodeToUpdate.Name = node.Name;
+                    nodeToUpdate.ParentId = node.ParentId;
+                    await _context.SaveChangesAsync();
+                    return NoContent();
+                }
             }
 
             return BadRequest();
@@ -68,7 +71,7 @@ namespace Tree.API.Controllers
         public IActionResult GetElement(int id)
         {
             Node node = _context.Node.FirstOrDefault(x => x.Id == id);
-           
+
 
             return Ok(node);
         }
@@ -76,7 +79,7 @@ namespace Tree.API.Controllers
         [HttpGet("full")]
         public IActionResult GetElements()
         {
-            List <Node> node = _context.Node.ToList();
+            List<Node> node = _context.Node.ToList();
 
 
             return Ok(node);
@@ -96,11 +99,11 @@ namespace Tree.API.Controllers
                     if (getNode.Children != null)
                     {
                         await RemoveChildren(getNode);
-                        
+
                     }
-                   
+
                     _context.Node.Remove(getNode);
-                 await   _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
                     return NoContent();
                 }
             }
@@ -111,21 +114,21 @@ namespace Tree.API.Controllers
         async Task RemoveChildren(Node node)
         {
             node.Parent = null;
-            foreach(var child in node.Children)
-            { 
-                if(child.Children != null)
+            foreach (var child in node.Children)
+            {
+                if (child.Children != null)
                 {
-                    
-                  await  RemoveChildren(child);
+
+                    await RemoveChildren(child);
                 }
                 _context.Remove(child);
-               
+
             }
         }
 
-       
+
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Node node)
+        public async Task<IActionResult> Create([FromBody] CreateNodeCommand node)
         {
             if (ModelState.IsValid)
             {
@@ -133,7 +136,7 @@ namespace Tree.API.Controllers
                 nodeToCreate.Name = node.Name;
                 nodeToCreate.ParentId = node.ParentId;
                 _context.Add(nodeToCreate);
-                await  _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return Ok(nodeToCreate);
             }
 
