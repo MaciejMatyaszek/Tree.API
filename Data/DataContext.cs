@@ -16,11 +16,12 @@ namespace Tree.API.Data
 
             modelBuilder.Entity<Node>(entity =>
             {
+
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired();
-                entity.Property(e => e.ParentId).IsRequired();
+                //entity.Property(e => e.ParentId).IsRequired(false).HasDefaultValue(null);
                 
-                entity.HasMany<Node>(e => e.Children).WithOne(e => e.Parent);
+                entity.HasMany(e => e.Children).WithOne(e => e.Parent).OnDelete(DeleteBehavior.NoAction).IsRequired(false);
                 
             });
 
