@@ -212,7 +212,7 @@ function time() {
 
 
 
-setTimeout(() => time(), 1000);
+
 
 function getElemById(i) {
 
@@ -726,7 +726,7 @@ function AddIconToRoot() {
 
             $("#tree").empty();
             renderTreeSort();
-            setTimeout(() => AddIconToRoot(), 1002);
+            
             generate();
 
 
