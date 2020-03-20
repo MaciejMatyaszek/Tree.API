@@ -14,4 +14,8 @@ musimy utworzyć bazę danych. W sekcji łaczenie z bazą danych w polu "Wybierz
 W eksploratorze serwera pojwił nam się nasz serwer. Klikamy naastępnie na niego prawym przyciskiem myszy i wybieramy właściwości z których kopiujemy
 parametry połączenia. Następnie w projekcie znajdujemy plik appsetting.json i w "DefaultConnection" zgodnie z widocznym schematem wklejamy skopiowany 
 parametry połaczenia.
+<br>
+<br>
 
+
+![alt text](TreeReadme.PNG)
