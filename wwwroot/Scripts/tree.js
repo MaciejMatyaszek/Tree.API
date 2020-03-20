@@ -1,9 +1,15 @@
-﻿
+﻿function validate(input) {
+    if (/^\s/.test(input.value))
+        input.value = '';
+}
+
+
+
 function usuwanie(obj) {
 
     for (var i = 0; i < obj.length; i++) {
         if (obj[i].children) {
-         
+
             usuwanie(obj[i].children);
         }
         var Id = obj[i].id;
@@ -31,7 +37,7 @@ function usuwanieFirst(table, id) {
     for (var i = 0; i < table.length; i++) {
 
         if (table[i].id == id) {
-          
+
             if (table[i].children != null) {
                 usuwanie(table[i].children);
             }
@@ -39,7 +45,7 @@ function usuwanieFirst(table, id) {
 
         }
     }
-    
+
 }
 
 
@@ -83,9 +89,9 @@ function combobox() {
             $('#ParentId').empty();
 
             var s = document.getElementById("ParentId");
-       
+
             for (var i = 0; i < data.length; i++) {
-          
+
                 $('<option />', { value: data[i].id, text: data[i].name }).appendTo(s);
             }
 
@@ -109,8 +115,8 @@ function rozwin() {
 
     }
 
-    var s = $("#rozwin").text();
-    if (s == 'Rozwin') {
+    var buttonname = $("#rozwin").text();
+    if (buttonname == 'Rozwin') {
         $("#rozwin").text("Zwin");
     }
     else {
@@ -127,11 +133,11 @@ function time() {
 
             var check = event.target.id + "a";
             var setid = $("#" + check).val();
-        
+
             var temp = setid + "da";
             var temp2 = setid + "sa";
             var temp3 = setid + "ha";
-           
+
 
             var Id = setid;
             if (temp == check) {
@@ -146,11 +152,11 @@ function time() {
                         dataType: 'json',
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
-                            
+
 
                             usuwanieFirst(data, Id);
 
-                        
+
                             usuwanieLast(Id);
 
 
@@ -164,7 +170,7 @@ function time() {
                     });
 
 
-                  
+
 
 
                 }
@@ -176,7 +182,7 @@ function time() {
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
                     success: function (data) {
-                       
+
 
                         $("#Name").val(data.name);
                         $("#ParentId").val(data.parentId);
@@ -188,15 +194,15 @@ function time() {
 
 
             }
-            else if(temp3 == check) {
+            else if (temp3 == check) {
                 var idsort = event.target.id + "a";
                 var valsortid = $("#" + idsort).val();
-                
-                 $("#tree").empty();
+
+                $("#tree").empty();
 
                 setTimeout(() => renderTreeSortBranch(valsortid), 400);
                 generate();
-                    
+
             }
 
         });
@@ -226,7 +232,7 @@ function getElemById(i) {
 
             $("#ParentId").val(data.parentId);
             $("#Id").val(data.id);
-           
+
 
         }
     });
@@ -236,10 +242,12 @@ function getElemById(i) {
 
 
 function add() {
+
+    $("#add").attr("disabled", true);
     id = $("#id").val();
     name = $("#Name").val();
     parentId = $("#ParentId").val();
-    
+
 
     if (name != "") {
 
@@ -251,7 +259,7 @@ function add() {
             "ParentId": parentId
         };
 
-
+      
 
         $.ajax({
             type: 'POST',
@@ -264,6 +272,10 @@ function add() {
                 renderTree();
                 generate();
 
+                setTimeout(() => $("#add").attr("disabled", false), 400);
+                name = $("#Name").val("");
+                id = $("#id").val(0);
+
             }
         });
         $("#error").empty();
@@ -271,6 +283,8 @@ function add() {
     }
     else {
         $("#error").empty().append("Wpisz nazwe ");
+        setTimeout(() => $("#add").attr("disabled", false), 400);
+
     }
 }
 
@@ -299,40 +313,52 @@ function change() {
     id = $("#Id").val();
     name = $("#Name").val();
     parentId = $("#ParentId").val();
-    if (name != "") {
+   
+    if (id != 0) {
+        if (name != "") {
 
 
 
-        var data = {
-            "Id": id,
-            "Name": name,
-            "ParentId": parentId
-        };
+
+            var data = {
+                "Id": id,
+                "Name": name,
+                "ParentId": parentId
+            };
 
 
 
-        $.ajax({
-            type: 'PUT',
-            url: 'https://localhost:44366/value/',
-            dataType: 'json',
-            data: JSON.stringify(data),
-            contentType: 'application/json; charset=utf-8',
-            success: function (result) {
-                $("#tree").empty();
-                alert("Sukces");
-                renderTree();
-                generate();
+            $.ajax({
+                type: 'PUT',
+                url: 'https://localhost:44366/value/',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    $("#tree").empty();
+                    alert("Sukces");
+                    renderTree();
+                    generate();
 
 
-                $("#Id").val(0);
-                $("#Name").val("");
-                $("#ParentId").val(1);
-            }
-        });
-        $("#error").empty();
+                    $("#Id").val(0);
+                    $("#Name").val("");
+                    $("#ParentId").val(1);
+                }
+            });
+            $("#error").empty();
+
+
+
+        }
+        else {
+            $("#error").empty().append("Wpisz nazwe");
+        }
+
     }
+
     else {
-        $("#error").empty().append("Wpisz nazwe");
+        $("#error").empty().append("Wybierz element do edycji");
     }
 
 
@@ -340,10 +366,10 @@ function change() {
 
 
 
-function to_uld(temp) {
+function addIcon(temp) {
 
 
-    
+
     for (var i = 0, n = temp.length; i < n; i++) {
         var child = temp[i];
         var test = document.getElementById(child.id + "s");
@@ -362,7 +388,7 @@ function to_uld(temp) {
         }
 
         if (child.children) {
-            to_uld(child.children);
+            addIcon(child.children);
         }
 
 
@@ -400,20 +426,20 @@ function to_ul(temp, obj) {
     if (obj.name == 'root') {
         ul.id = "myUL";
         var liroot = document.createElement("li");
-        var uln = document.createElement("ul");
+        var ulroot = document.createElement("ul");
         var spanroot = document.createElement("span")
-        spanroot.id="root";
-        var sg = document.createTextNode("Tree");
+        spanroot.id = "root";
+        var rootName = document.createTextNode("Tree");
         spanroot.className = "caret";
 
-        spanroot.appendChild(sg);
-        uln.className = "nested";
+        spanroot.appendChild(rootName);
+        ulroot.className = "nested";
         ul.appendChild(liroot);
         liroot.appendChild(spanroot);
-        liroot.appendChild(uln);
+        liroot.appendChild(ulroot);
 
 
-        
+
 
     }
 
@@ -422,11 +448,11 @@ function to_ul(temp, obj) {
         var li = document.createElement("li");
         var button = document.createElement("a");
         var button2 = document.createElement("a");
-        var spanek = document.createElement("span");
-        spanek.className = "caret";
+        var span = document.createElement("span");
+        span.className = "caret";
 
         li.id = child.id;
-        spanek.id = child.id + "s";
+        span.id = child.id + "s";
         button.id = child.id + "a";
         button2.id = child.id + "t";
 
@@ -438,8 +464,8 @@ function to_ul(temp, obj) {
 
 
         if (child.children) {
-            spanek.appendChild(text);
-            li.appendChild(spanek);
+            span.appendChild(text);
+            li.appendChild(span);
             li.appendChild(to_ul(child.children, child.name));
         }
         else {
@@ -448,11 +474,11 @@ function to_ul(temp, obj) {
         }
         if (obj.name == 'root') {
 
-            uln.appendChild(li);
+            ulroot.appendChild(li);
         }
         else {
             ul.appendChild(li);
-            var at = child.id + "a";
+           
         }
     }
 
@@ -467,26 +493,26 @@ function to_ulSort(temp, obj) {
     if (obj.name == 'root') {
         ul.id = "myUL";
         var liroot = document.createElement("li");
-        var uln = document.createElement("ul");
+        var ulroot = document.createElement("ul");
         var spanroot = document.createElement("span")
         spanroot.id = "root";
-        var sg = document.createTextNode("Tree");
+        var rootName = document.createTextNode("Tree");
         spanroot.className = "caret";
 
-        spanroot.appendChild(sg);
-        uln.className = "nested";
+        spanroot.appendChild(rootName);
+        ulroot.className = "nested";
         ul.appendChild(liroot);
         liroot.appendChild(spanroot);
-        liroot.appendChild(uln);
+        liroot.appendChild(ulroot);
 
 
 
 
     }
     if (temp != null) {
-       
+
         temp.sort(dynamicSort("name"));
-       
+
     }
 
     for (var i = 0, n = temp.length; i < n; i++) {
@@ -494,11 +520,11 @@ function to_ulSort(temp, obj) {
         var li = document.createElement("li");
         var button = document.createElement("a");
         var button2 = document.createElement("a");
-        var spanek = document.createElement("span");
-        spanek.className = "caret";
+        var span = document.createElement("span");
+        span.className = "caret";
 
         li.id = child.id;
-        spanek.id = child.id + "s";
+        span.id = child.id + "s";
         button.id = child.id + "a";
         button2.id = child.id + "t";
 
@@ -510,8 +536,8 @@ function to_ulSort(temp, obj) {
 
 
         if (child.children) {
-            spanek.appendChild(text);
-            li.appendChild(spanek);
+            span.appendChild(text);
+            li.appendChild(span);
             li.appendChild(to_ulSort(child.children, child.name));
         }
         else {
@@ -520,11 +546,11 @@ function to_ulSort(temp, obj) {
         }
         if (obj.name == 'root') {
 
-            uln.appendChild(li);
+            ulroot.appendChild(li);
         }
         else {
             ul.appendChild(li);
-            var at = child.id + "a";
+           
         }
     }
 
@@ -546,7 +572,7 @@ async function renderTree() {
 
 
         treeEl.appendChild(to_ul(treeObj.children, treeObj));
-        to_uld(treeObj.children);
+        addIcon(treeObj.children);
     }
 }
 
@@ -563,7 +589,7 @@ async function renderTreeSort() {
 
 
     treeEl.appendChild(to_ulSort(treeObj.children, treeObj));
-    to_uld(treeObj.children);
+    addIcon(treeObj.children);
 }
 
 async function renderTreeSortBranch(id) {
@@ -579,7 +605,7 @@ async function renderTreeSortBranch(id) {
 
 
     treeEl.appendChild(to_ulSortBranch(treeObj.children, treeObj, id));
-    to_uld(treeObj.children);
+    addIcon(treeObj.children);
 }
 
 function to_ulSortBranch(temp, obj, id) {
@@ -591,18 +617,18 @@ function to_ulSortBranch(temp, obj, id) {
     if (obj.name == 'root') {
         ul.id = "myUL";
         var liroot = document.createElement("li");
-        var uln = document.createElement("ul");
+        var ulroot = document.createElement("ul");
         var spanroot = document.createElement("span")
-        
+
         spanroot.id = "root";
-        var sg = document.createTextNode("Tree");
+        var rootName = document.createTextNode("Tree");
         spanroot.className = "caret";
 
-        spanroot.appendChild(sg);
-        uln.className = "nested";
+        spanroot.appendChild(rootName);
+        ulroot.className = "nested";
         ul.appendChild(liroot);
         liroot.appendChild(spanroot);
-        liroot.appendChild(uln);
+        liroot.appendChild(ulroot);
 
     }
     if (id == 1) {
@@ -610,21 +636,21 @@ function to_ulSortBranch(temp, obj, id) {
         id = id - 1;
 
     }
-   
 
 
-    
+
+
 
     for (var i = 0, n = temp.length; i < n; i++) {
         var child = temp[i];
         var li = document.createElement("li");
         var button = document.createElement("a");
         var button2 = document.createElement("a");
-        var spanek = document.createElement("span");
-        spanek.className = "caret";
+        var span = document.createElement("span");
+        span.className = "caret";
 
         li.id = child.id;
-        spanek.id = child.id + "s";
+        span.id = child.id + "s";
         button.id = child.id + "a";
         button2.id = child.id + "t";
 
@@ -633,21 +659,21 @@ function to_ulSortBranch(temp, obj, id) {
         button.href = "https://localhost:44366/value/test";
         button.appendChild(y);
         var text = document.createTextNode(child.name);
- 
+
         if (child.id == id) {
             child.children.sort(dynamicSort("name"));
         }
 
         if (child.children) {
-           
-            spanek.appendChild(text);
-            li.appendChild(spanek);
 
-          
+            span.appendChild(text);
+            li.appendChild(span);
 
-                li.appendChild(to_ulSortBranch(child.children, child.name, id));
-            
-            
+
+
+            li.appendChild(to_ulSortBranch(child.children, child.name, id));
+
+
         }
         else {
             li.appendChild(text);
@@ -655,11 +681,11 @@ function to_ulSortBranch(temp, obj, id) {
         }
         if (obj.name == 'root') {
 
-            uln.appendChild(li);
+            ulroot.appendChild(li);
         }
         else {
             ul.appendChild(li);
-            var at = child.id + "a";
+            
         }
     }
 
@@ -691,7 +717,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
     var toggler = document.getElementsByClassName("caret");
 
-    
+
 
 });
 
@@ -708,16 +734,19 @@ setTimeout(() => combobox(), 1000);
 setTimeout(() => rozwin(), 1001);
 
 
-function generate(){
+function generate() {
     setTimeout(() => AddIconToRoot(), 1002);
     setTimeout(() => testowa(), 1002);
     setTimeout(() => time(), 800);
     setTimeout(() => combobox(), 1000);
     setTimeout(() => rozwin(), 1001);
+    
+    
+
 }
 
 function AddIconToRoot() {
-   
+
     $("#root").append('<i id=\"1r\" class=\"fas fa-sort-alpha-down\" aria-hidden=\"true\"><input id=\"1ra\" type=\"hidden\" value=\"1\"></i></i>');
     $("#root").append('<i id=\"1g\" class=\"fas fa-filter\" aria-hidden=\"true\"><input id=\"1ga\" type=\"hidden\" value=\"1\"></i></i>');
 
@@ -726,7 +755,7 @@ function AddIconToRoot() {
 
             $("#tree").empty();
             renderTreeSort();
-            
+
             generate();
 
 

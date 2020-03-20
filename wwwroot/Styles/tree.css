@@ -56,25 +56,25 @@ ul, #myUL {
 
 #error{
     font-weight:bold;
-    color:red;
+    color:darkred;
 }
 
 
 }
 
 #tree{
- min-height:50vh;
+ 
   background-color: red;
-  min-height:80vh;
+  
 }
 
-.test{
-    height: 100vh;
-}
+
 
 body {
     margin: 0;
     padding: 0;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 .app {
@@ -87,13 +87,13 @@ body {
 
 .content {
     grid-area: c;
-    min-height: 80vh;
+    min-height: 90vh;
 }
 
 .footer {
     grid-area: f;
     background-color: black;
-    min-height: 15vh;
+    min-height: 10vh;
 }
 
 .header{
@@ -101,9 +101,10 @@ body {
 }
 .form {
     background-color: grey;
-    min-height: 85vh;
+    min-height: 90vh;
 }
 i{
 padding:2px;
 
 }
+

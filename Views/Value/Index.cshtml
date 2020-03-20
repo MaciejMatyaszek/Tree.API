@@ -31,15 +31,15 @@
                             <p id="error"></p>
                             <input type="hidden" id="Id" value="0" />
                             <label>Nazwa</label>
-                            <input type="text" id="Name" />
+                            <input type="text" id="Name"  oninput="validate(this)"/>
                             <br />
                             <label>Rodzic</label>
                             <select id="ParentId">
                             </select>
 
                             <br />
-                            <button id="tes\\t" onclick="add()">Dodaj</button>
-                            <button id="tes\\t" onclick="change()">Edytuj</button>
+                            <button id="add" onclick="add()">Dodaj</button>
+                            <button id="edit" onclick="change()">Edytuj</button>
                         </div>
                         <div class="col-sm-8">
                             <div id="tree"></div>
