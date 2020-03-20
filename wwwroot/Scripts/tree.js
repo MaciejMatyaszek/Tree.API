@@ -239,7 +239,7 @@ function add() {
     id = $("#id").val();
     name = $("#Name").val();
     parentId = $("#ParentId").val();
-    console.log(parentId);
+    
 
     if (name != "") {
 
@@ -484,9 +484,9 @@ function to_ulSort(temp, obj) {
 
     }
     if (temp != null) {
-        console.log("Tu sortuje");
+       
         temp.sort(dynamicSort("name"));
-        console.log(temp.sort(dynamicSort("name")));
+       
     }
 
     for (var i = 0, n = temp.length; i < n; i++) {
@@ -633,9 +633,7 @@ function to_ulSortBranch(temp, obj, id) {
         button.href = "https://localhost:44366/value/test";
         button.appendChild(y);
         var text = document.createTextNode(child.name);
-        console.log(child);
-        console.log(child.id);
-        console.log(id);
+ 
         if (child.id == id) {
             child.children.sort(dynamicSort("name"));
         }
