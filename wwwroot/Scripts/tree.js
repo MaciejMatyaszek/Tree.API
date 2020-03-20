@@ -1,10 +1,9 @@
 ﻿
 function usuwanie(obj) {
-    console.log("usuwanie 1");
-    console.log(obj);
+
     for (var i = 0; i < obj.length; i++) {
         if (obj[i].children) {
-            console.log("w if");
+         
             usuwanie(obj[i].children);
         }
         var Id = obj[i].id;
@@ -27,15 +26,12 @@ function usuwanie(obj) {
 
 
 function usuwanieFirst(table, id) {
-    console.log("usuwaniefirst");
-    console.log(table);
-    console.log(id);
-    console.log(table.length);
+
 
     for (var i = 0; i < table.length; i++) {
-        console.log(table[i].children);
+
         if (table[i].id == id) {
-            console.log(table[i].Id);
+          
             if (table[i].children != null) {
                 usuwanie(table[i].children);
             }
@@ -43,7 +39,7 @@ function usuwanieFirst(table, id) {
 
         }
     }
-    console.log("Koniec");
+    
 }
 
 
@@ -85,10 +81,12 @@ function combobox() {
         success: function (data) {
 
             $('#ParentId').empty();
-            var s = $('#ParentId');
 
-            for (var val in data) {
-                $('<option />', { value: val.id, text: data[val].id }).appendTo(s);
+            var s = document.getElementById("ParentId");
+       
+            for (var i = 0; i < data.length; i++) {
+          
+                $('<option />', { value: data[i].id, text: data[i].name }).appendTo(s);
             }
 
         }
@@ -97,7 +95,7 @@ function combobox() {
 
 
 
-combobox();
+
 
 
 function rozwin() {
@@ -111,7 +109,7 @@ function rozwin() {
 
     }
 
-    var s = $("#rozwiń").text();
+    var s = $("#rozwin").text();
     if (s == 'Rozwin') {
         $("#rozwin").text("Zwin");
     }
@@ -121,11 +119,7 @@ function rozwin() {
 
 }
 
-function sortBranch() {
-    $(document).ready(function () {
-        $("#")
-    })
-}
+
 
 function time() {
     $(document).ready(function () {
@@ -133,13 +127,11 @@ function time() {
 
             var check = event.target.id + "a";
             var setid = $("#" + check).val();
-            console.log("setid");
-            console.log(setid);
+        
             var temp = setid + "da";
             var temp2 = setid + "sa";
             var temp3 = setid + "ha";
-            console.log(check);
-            console.log(temp3);
+           
 
             var Id = setid;
             if (temp == check) {
@@ -154,11 +146,11 @@ function time() {
                         dataType: 'json',
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
-                            alert("tujaj bylem");
+                            
 
                             usuwanieFirst(data, Id);
 
-                            console.log("Wrocilem tu");
+                        
                             usuwanieLast(Id);
 
 
@@ -172,24 +164,7 @@ function time() {
                     });
 
 
-                    //        $.ajax({
-                    //            type: 'DELETE',
-                    //            url: 'https://localhost:44366/value/' + Id,
-
-                    //            success: function (result) {
-                    //                $("#tree").empty();
-                    //                 alert("Sukces");
-                    //renderTree();
-                    //setTimeout(() => testowa(), 500);
-                    //setTimeout(() => time(), 800);
-                    //setTimeout(() => combobox(), 1000);
-                    //setTimeout(() => rozwin(), 1001);
-
-                    //            },
-                    //             error: function(result) {
-                    //               alert('error');
-                    //               }
-                    //        });
+                  
 
 
                 }
@@ -201,7 +176,7 @@ function time() {
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
                     success: function (data) {
-                        alert("Get metoda");
+                       
 
                         $("#Name").val(data.name);
                         $("#ParentId").val(data.parentId);
@@ -216,7 +191,7 @@ function time() {
             else if(temp3 == check) {
                 var idsort = event.target.id + "a";
                 var valsortid = $("#" + idsort).val();
-                alert("jestem temp3");
+                
                  $("#tree").empty();
 
                 setTimeout(() => renderTreeSortBranch(valsortid), 400);
@@ -251,7 +226,7 @@ function getElemById(i) {
 
             $("#ParentId").val(data.parentId);
             $("#Id").val(data.id);
-            alert(data[i].children);
+           
 
         }
     });
@@ -264,6 +239,7 @@ function add() {
     id = $("#id").val();
     name = $("#Name").val();
     parentId = $("#ParentId").val();
+    console.log(parentId);
 
     if (name != "") {
 
@@ -294,7 +270,7 @@ function add() {
 
     }
     else {
-        $("#error").append("Wpisz nazwe ");
+        $("#error").empty().append("Wpisz nazwe ");
     }
 }
 
@@ -356,7 +332,7 @@ function change() {
         $("#error").empty();
     }
     else {
-        $("#error").append("Wpisz nazwe");
+        $("#error").empty().append("Wpisz nazwe");
     }
 
 
@@ -398,16 +374,18 @@ function to_uld(temp) {
 
 function dynamicSort(property) {
     var sortOrder = 1;
+
     if (property[0] === "-") {
         sortOrder = -1;
         property = property.substr(1);
     }
+
     return function (a, b) {
-        /* next line works with strings and numbers, 
-         * and you may want to customize it to your needs
-         */
-        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
-        return result * sortOrder;
+        if (sortOrder == -1) {
+            return b[property].localeCompare(a[property]);
+        } else {
+            return a[property].localeCompare(b[property]);
+        }
     }
 }
 
@@ -506,7 +484,9 @@ function to_ulSort(temp, obj) {
 
     }
     if (temp != null) {
+        console.log("Tu sortuje");
         temp.sort(dynamicSort("name"));
+        console.log(temp.sort(dynamicSort("name")));
     }
 
     for (var i = 0, n = temp.length; i < n; i++) {
@@ -532,7 +512,7 @@ function to_ulSort(temp, obj) {
         if (child.children) {
             spanek.appendChild(text);
             li.appendChild(spanek);
-            li.appendChild(to_ul(child.children, child.name));
+            li.appendChild(to_ulSort(child.children, child.name));
         }
         else {
             li.appendChild(text);
@@ -562,9 +542,12 @@ async function renderTree() {
 
     var treeObj = data;
 
+    if (treeObj.children != null) {
 
-    treeEl.appendChild(to_ul(treeObj.children, treeObj));
-    to_uld(treeObj.children);
+
+        treeEl.appendChild(to_ul(treeObj.children, treeObj));
+        to_uld(treeObj.children);
+    }
 }
 
 async function renderTreeSort() {
@@ -622,10 +605,15 @@ function to_ulSortBranch(temp, obj, id) {
         liroot.appendChild(uln);
 
     }
+    if (id == 1) {
+        temp.sort(dynamicSort("name"));
+        id = id - 1;
+
+    }
+   
 
 
-
-    console.log(temp);
+    
 
     for (var i = 0, n = temp.length; i < n; i++) {
         var child = temp[i];
@@ -645,25 +633,23 @@ function to_ulSortBranch(temp, obj, id) {
         button.href = "https://localhost:44366/value/test";
         button.appendChild(y);
         var text = document.createTextNode(child.name);
-
+        console.log(child);
+        console.log(child.id);
+        console.log(id);
+        if (child.id == id) {
+            child.children.sort(dynamicSort("name"));
+        }
 
         if (child.children) {
-            console.log("Dzieci");
-            console.log(child.id);
-            console.log("id");
-            console.log(id);
+           
             spanek.appendChild(text);
             li.appendChild(spanek);
-            if (child.id == id) {
 
-                console.log(child.cs);
-                console.log(child.children.sort(dynamicSort("name")));
+          
 
-                li.appendChild(to_ulSortBranch(child.children.sort(dynamicSort("name")), child.name, id));
-            }
-            else {
                 li.appendChild(to_ulSortBranch(child.children, child.name, id));
-            }
+            
+            
         }
         else {
             li.appendChild(text);
@@ -733,8 +719,9 @@ function generate(){
 }
 
 function AddIconToRoot() {
-
-    $("#root").append('<i id=\"1r\" class=\"fa fa-filter\" aria-hidden=\"true\"><input id=\"1ra\" type=\"hidden\" value=\"1\"></i></i>');
+   
+    $("#root").append('<i id=\"1r\" class=\"fas fa-sort-alpha-down\" aria-hidden=\"true\"><input id=\"1ra\" type=\"hidden\" value=\"1\"></i></i>');
+    $("#root").append('<i id=\"1g\" class=\"fas fa-filter\" aria-hidden=\"true\"><input id=\"1ga\" type=\"hidden\" value=\"1\"></i></i>');
 
     $(document).ready(function () {
         $("#1r").click(function (e) {
@@ -742,10 +729,19 @@ function AddIconToRoot() {
             $("#tree").empty();
             renderTreeSort();
             setTimeout(() => AddIconToRoot(), 1002);
-            setTimeout(() => testowa(), 1002);
-            setTimeout(() => time(), 800);
-            setTimeout(() => combobox(), 1000);
-            setTimeout(() => rozwin(), 1001);
+            generate();
+
+
+        });
+
+    });
+
+    $(document).ready(function () {
+        $("#1g").click(function (e) {
+
+            $("#tree").empty();
+            renderTreeSortBranch(1);
+            generate();
 
 
         });
